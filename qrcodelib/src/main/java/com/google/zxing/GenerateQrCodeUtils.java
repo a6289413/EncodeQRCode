@@ -45,7 +45,7 @@ public class GenerateQrCodeUtils {
         }
 
 
-        Map<EncodeHintType, Object> hints = hints = new EnumMap(EncodeHintType.class);
+        Map<EncodeHintType, Object> hints = new EnumMap(EncodeHintType.class);
         hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
         hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.H);
         hints.put(EncodeHintType.MARGIN, "0");
