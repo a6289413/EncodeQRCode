@@ -63,14 +63,19 @@ public class GenerateQrCodeUtils {
         Log.v(TAG, "real width: " + result.getEnclosingRectangle()[3]);
 
         if (borderWidh == 0) {
-            if (result.getEnclosingRectangle()[0] == 0) {
-                if (result.getEnclosingRectangle()[2] == width) {
-                    if (!isBlackBackgroud) {
-                        bitmap = getBitmap(result);
-                    } else { // 黑色背景, 此时必须要有至少1px 白边，二维码才能够被识别
-                        bitmap = getBitmap(deleteWhite(result, 1));
-                    }
+            if (result.getEnclosingRectangle()[0] == 0 && result.getEnclosingRectangle()[2] == width) {
+                if (isBlackBackgroud) { // 黑色背景, 此时必须要有至少1px 白边，二维码才能够被识别
+                    bitmap = getBitmap(deleteWhite(result, 1));
+                } else {
+                    bitmap = getBitmap(result);
                 }
+            } else {
+                if (isBlackBackgroud) {
+                    bitmap = getBitmap(deleteWhite(result, 1));
+                } else {
+                    bitmap = getBitmap(deleteWhite(result, 0));
+                }
+                bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
             }
         } else {
             // 生成的二维码与期待（传入的宽高）的宽高一样，直接利用去白边方法添加白边
@@ -81,13 +86,13 @@ public class GenerateQrCodeUtils {
                 }
                 // 生成的二维码比期待（传入的宽高）的宽高小，先去掉二维码的白边，生成二维码bitmap， 放大二维码，然后增加白边。
             } else if (result.getEnclosingRectangle()[2] < width) {
-                bitmap = getBitmap(deleteWhite(result, 0));
+                bitmap = getBitmap(deleteWhite(result, 1));
                 bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
                 bitmap = bitmapWhiteBorder(bitmap, borderWidh);
 
-//                if (isRound) {
-//                    bitmap = bimapRound(bitmap, radian);
-//                }
+                if (isRound) {
+                    bitmap = bimapRound(bitmap, radian);
+                }
             }
 
         }
