@@ -1,6 +1,7 @@
 package com.google.zxing;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -8,6 +9,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.util.Log;
 
 import com.google.zxing.common.BitMatrix;
@@ -29,10 +31,10 @@ public class GenerateQrCodeUtils {
      * @param isBlackBackgroud 二维码所在的父布局是否是黑色背景，黑色背景的情况下，二维码必须至少有1px的白边，否则二维码不能正常识别
      * @param borderWidh       二维码白边大小
      * @param isRound          是否圆角
-     * @param radian           圆角弧度
+     * @param radius           圆角弧度
      * @return
      */
-    public static Bitmap generateQrCode(String content, int width, int height, boolean isBlackBackgroud, int borderWidh, boolean isRound, int radian) {
+    public static Bitmap generateQrCode(String content, int width, int height, boolean isBlackBackgroud, int borderWidh, boolean isRound, int radius) {
         Bitmap bitmap = null;
         if (width != height) {
             Log.w(TAG, "the width and the height must be same dimension");
@@ -82,7 +84,7 @@ public class GenerateQrCodeUtils {
             if (result.getEnclosingRectangle()[2] == width) {
                 bitmap = getBitmap(deleteWhite(result, borderWidh));
                 if (isRound) {
-                    bitmap = bimapRound(bitmap, radian);
+                    bitmap = bimapRound(bitmap, radius);
                 }
                 // 生成的二维码比期待（传入的宽高）的宽高小，先去掉二维码的白边，生成二维码bitmap， 放大二维码，然后增加白边。
             } else if (result.getEnclosingRectangle()[2] < width) {
@@ -91,7 +93,8 @@ public class GenerateQrCodeUtils {
                 bitmap = bitmapWhiteBorder(bitmap, borderWidh);
 
                 if (isRound) {
-                    bitmap = bimapRound(bitmap, radian);
+                    bitmap = roundBitmapByShader(bitmap, radius);
+//                    bitmap = bimapRound(bitmap, radius);
                 }
             }
 
@@ -162,5 +165,26 @@ public class GenerateQrCodeUtils {
         canvas.drawColor(Color.WHITE);
         canvas.drawBitmap(bitmap, borderWidth, borderWidth, null);
         return bitmapWithBorder;
+    }
+
+    private static Bitmap roundBitmapByShader(Bitmap bitmap, int radius) {
+        if (bitmap == null) {
+            throw new NullPointerException("Bitmap can't be null");
+        }
+        // 初始化绘制纹理图
+        BitmapShader bitmapShader = new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP);
+        // 初始化画笔
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setShader(bitmapShader);
+
+        // 初始化目标bitmap
+        Bitmap targetBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        // 初始化目标画布
+        Canvas targetCanvas = new Canvas(targetBitmap);
+
+        // 利用画笔将纹理图绘制到画布上面
+        targetCanvas.drawRoundRect(new RectF(0, 0, bitmap.getWidth(), bitmap.getHeight()), radius, radius, paint);
+        return targetBitmap;
     }
 }
